@@ -1,0 +1,2 @@
+headlights.c:28:6:SetHeadlightIO	32	static
+headlights.c:63:6:SetLights	16	static
