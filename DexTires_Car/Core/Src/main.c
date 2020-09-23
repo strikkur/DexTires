@@ -41,14 +41,16 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
+DMA_HandleTypeDef hdma_adc;
 
 /* USER CODE BEGIN PV */
-unsigned ADC_val;
+uint32_t ADCValueArr[3];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -87,11 +89,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC_Init();
   /* USER CODE BEGIN 2 */
-  //HAL_ADC_Start_IT(&hadc);
 
-  SetHeadlightIO(GPIOA, GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_4, GPIO_PIN_5);
+//  SetHeadlightIO(GPIOA, GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_4, GPIO_PIN_5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,34 +104,35 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  SetLights(Front);
-	  HAL_Delay(3000);
-	  SetLights(Back);
-	  HAL_Delay(3000);
-	  SetLights(Left);
-	  HAL_Delay(3000);
-	  SetLights(Right);
-	  HAL_Delay(3000);
+//	  SetLights(Front);
+//	  HAL_Delay(3000);
+//	  SetLights(Back);
+//	  HAL_Delay(3000);
+//	  SetLights(Left);
+//	  HAL_Delay(3000);
+//	  SetLights(Right);
+//	  HAL_Delay(3000);
 
 	  /////////////////////// Potentiometer & LEDs ///////////////////////
-	  /*
-	  HAL_ADC_Start_IT(&hadc);
+
+//	  HAL_ADC_Start_IT(&hadc);
+	  HAL_ADC_Start_DMA(&hadc, ADCValueArr, 3);
 	  HAL_Delay(50);
-	  if (ADC_val < 13) {
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
-	  } else if (ADC_val < 26) {
+
+
+	  if(ADCValueArr[0] > 13) {
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
-	  } else if (ADC_val < 39) {
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
-	  } else if (ADC_val < 52){
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4, GPIO_PIN_SET);
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	  } else if(ADCValueArr[1] > 13) {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
+	  } else if(ADCValueArr[2] > 13) {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5, GPIO_PIN_RESET);
 	  } else {
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
 	  }
-	  */
+
 	  ////////////////////////////////////////////////////////////////////
 
   }
@@ -202,7 +205,7 @@ static void MX_ADC_Init(void)
   hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc.Init.LowPowerAutoWait = DISABLE;
   hadc.Init.LowPowerAutoPowerOff = DISABLE;
-  hadc.Init.ContinuousConvMode = DISABLE;
+  hadc.Init.ContinuousConvMode = ENABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
   hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -221,9 +224,53 @@ static void MX_ADC_Init(void)
   {
     Error_Handler();
   }
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_9;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN ADC_Init 2 */
 
   /* USER CODE END ADC_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -238,6 +285,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -269,11 +317,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	if (__HAL_ADC_GET_FLAG(hadc, ADC_FLAG_EOC)){
-		ADC_val = HAL_ADC_GetValue(hadc);
-	}
-}
+//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+//	if (__HAL_ADC_GET_FLAG(hadc, ADC_FLAG_EOC)){
+//		ADC_val = HAL_ADC_GetValue(hadc);
+//	}
+//}
 /* USER CODE END 4 */
 
 /**
