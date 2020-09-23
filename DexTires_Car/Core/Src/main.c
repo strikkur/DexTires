@@ -44,7 +44,7 @@ ADC_HandleTypeDef hadc;
 DMA_HandleTypeDef hdma_adc;
 
 /* USER CODE BEGIN PV */
-uint32_t ADCValueArr[3];
+uint32_t ADCValueArr[5];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,7 +116,7 @@ int main(void)
 	  /////////////////////// Potentiometer & LEDs ///////////////////////
 
 //	  HAL_ADC_Start_IT(&hadc);
-	  HAL_ADC_Start_DMA(&hadc, ADCValueArr, 3);
+	  HAL_ADC_Start_DMA(&hadc, ADCValueArr, 5);
 	  HAL_Delay(50);
 
 
@@ -129,7 +129,12 @@ int main(void)
 	  } else if(ADCValueArr[2] > 13) {
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5, GPIO_PIN_RESET);
-	  } else {
+	  } else if(ADCValueArr[3] > 13) {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4, GPIO_PIN_RESET);
+	  }  else if(ADCValueArr[4] > 13) {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_SET);
+	  }  else {
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
 	  }
 
