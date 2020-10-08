@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 main.c:69:5:main	8	static
 main.c:151:6:SystemClock_Config	80	static
 main.c:191:13:MX_ADC_Init	24	static
@@ -5,3 +6,11 @@ main.c:243:13:MX_TIM3_Init	64	static
 main.c:302:13:MX_GPIO_Init	48	static
 main.c:339:6:HAL_ADC_ConvCpltCallback	32	static
 main.c:353:6:Error_Handler	8	static
+=======
+main.c:68:5:main	8	static
+main.c:151:6:SystemClock_Config	80	static
+main.c:191:13:MX_ADC_Init	24	static
+main.c:269:13:MX_DMA_Init	16	static
+main.c:287:13:MX_GPIO_Init	48	static
+main.c:336:6:Error_Handler	8	static
+>>>>>>> ce0c2e6d436f68761a38b8e909b415d3e4a41254

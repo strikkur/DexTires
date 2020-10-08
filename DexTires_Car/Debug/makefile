@@ -46,8 +46,8 @@ DexTires_Car.bin \
 all: DexTires_Car.elf secondary-outputs
 
 # Tool invocations
-DexTires_Car.elf: $(OBJS) $(USER_OBJS) C:\Users\Lakshya\ Goyal\STM32CubeIDE\workspace_1.4.0\DexTires_Car\STM32F051R8TX_FLASH.ld
-	arm-none-eabi-gcc -o "DexTires_Car.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\Lakshya Goyal\STM32CubeIDE\workspace_1.4.0\DexTires_Car\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="DexTires_Car.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+DexTires_Car.elf: $(OBJS) $(USER_OBJS) C:\Users\the4c\Documents\School\ Work\2020-2021\Semester\ 7\ECE477\FSRs_SMAT\DexTires\DexTires_Car\STM32F051R8TX_FLASH.ld
+	arm-none-eabi-gcc -o "DexTires_Car.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\the4c\Documents\School Work\2020-2021\Semester 7\ECE477\FSRs_SMAT\DexTires\DexTires_Car\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="DexTires_Car.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
