@@ -6,6 +6,7 @@
 //#include "stm32_hal_legacy.h"
 
 extern char buffer[50];
+extern char tx_buffer[50];
 //extern uint8_t buffer[50];
 extern uint8_t timer_count, buffer_index;
 extern UART_HandleTypeDef huart1;

@@ -46,7 +46,7 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+//volatile int USART1TransferCompleted;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +60,6 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -91,12 +90,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+//  MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  memset(buffer, 0, sizeof(buffer)); //clear buffer
-  HAL_TIM_Base_Start_IT(&htim2);//start timer
-//  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);//enable UART RX interrupt
+//  HAL_TIM_Base_Start_IT(&htim2);//start timer
+  uint8_t val1 = 1;
+  uint8_t val2 = 2;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,15 +103,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	HAL_UART_Transmit(&huart1, (uint8_t *)&val1, 1, 500);
+	HAL_Delay(500);
+	HAL_UART_Transmit(&huart1, (uint8_t *)&val2, 1, 500);
+	HAL_Delay(500);
     /* USER CODE BEGIN 3 */
-	HAL_UART_Transmit(&huart1, (uint8_t*)"GREEN LED\r\n", strlen("GREEN LED\r\n") + 1, 500);
-	HAL_Delay(5000);
-	HAL_UART_Transmit(&huart1, (uint8_t*)"RED LED\r\n", strlen("RED LED\r\n") + 1, 500);
-	HAL_Delay(5000);
-	HAL_UART_Transmit(&huart1, (uint8_t*)"CLEAR\r\n", strlen("CLEAR\r\n") + 1, 500);
-	HAL_Delay(5000);
-  }
   /* USER CODE END 3 */
+  }
 }
 
 /**

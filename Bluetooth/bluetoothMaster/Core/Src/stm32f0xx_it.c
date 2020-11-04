@@ -166,11 +166,12 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-	HAL_UART_Receive(&huart1, (uint8_t*)&buffer[buffer_index++], 1, 10);
-	//HAL_UART_R
-
-	if(buffer[buffer_index] == '\n')
-			Message_handler();
+  for(int i = 0; i < sizeof(buffer); i++) {
+	  if(buffer[i] == '\n') {
+		  buffer_index = i;
+		  Message_handler();
+	  }
+  }
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
