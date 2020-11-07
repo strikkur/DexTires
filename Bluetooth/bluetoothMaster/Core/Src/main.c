@@ -90,12 +90,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_TIM2_Init();
+  MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-//  HAL_TIM_Base_Start_IT(&htim2);//start timer
-  uint8_t val1 = 1;
-  uint8_t val2 = 2;
+  txbuffer = 1;
+  HAL_TIM_Base_Start_IT(&htim2);//start timer
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,10 +102,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	HAL_UART_Transmit(&huart1, (uint8_t *)&val1, 1, 500);
-	HAL_Delay(500);
-	HAL_UART_Transmit(&huart1, (uint8_t *)&val2, 1, 500);
-	HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
   }
@@ -178,7 +173,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 48000;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 499;
+  htim2.Init.Period = 99;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)

@@ -148,15 +148,11 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-	if(strlen(buffer) > 0)
-		timer_count++;
-	if (timer_count > 5) //if receiving takes more than 100 ms, messages are short, dont need alot of time
-		Message_handler();
-
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_TXE);
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
-
+  __HAL_UART_DISABLE_IT(&huart1, UART_IT_TXE);
   /* USER CODE END TIM2_IRQn 1 */
 }
 
@@ -166,16 +162,10 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  for(int i = 0; i < sizeof(buffer); i++) {
-	  if(buffer[i] == '\n') {
-		  buffer_index = i;
-		  Message_handler();
-	  }
-  }
+  Message_handler();
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-
   /* USER CODE END USART1_IRQn 1 */
 }
 
