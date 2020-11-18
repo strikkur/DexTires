@@ -1,0 +1,5 @@
+speedConstantsSettings.c:17:10:Tavgcalc	24	static
+speedConstantsSettings.c:23:5:kcalc	24	static
+speedConstantsSettings.c:29:6:fourTavg	8	static
+speedConstantsSettings.c:38:6:fourk	8	static
+speedConstantsSettings.c:49:6:pressureArrayInit	16	static

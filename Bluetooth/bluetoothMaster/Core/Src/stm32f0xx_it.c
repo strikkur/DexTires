@@ -23,8 +23,9 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include  "mylibrary.h"
-
+#include "transmission.h"
+#include "direction.h"
+#include "speed.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +59,9 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern TIM_HandleTypeDef htim2;
+extern DMA_HandleTypeDef hdma_adc;
+extern ADC_HandleTypeDef hadc;
+extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
 
@@ -143,17 +146,71 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM2 global interrupt.
+  * @brief This function handles DMA1 channel 1 interrupt.
   */
-void TIM2_IRQHandler(void)
+void DMA1_Channel1_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM2_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc);
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC and COMP interrupts (COMP interrupts through EXTI lines 21 and 22).
+  */
+void ADC1_COMP_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_COMP_IRQn 0 */
+
+  /* USER CODE END ADC1_COMP_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc);
+  /* USER CODE BEGIN ADC1_COMP_IRQn 1 */
+
+  /* USER CODE END ADC1_COMP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+  /* Start ADC-DMA conversions to place the raw FSR ADC values into the RawFSRInput buffer */
+  HAL_ADC_Start_DMA(&hadc, (uint32_t *)RawFSRInput, 5);
+  RawFSRAvg = (RawFSRInput[0] + RawFSRInput[1] + RawFSRInput[2] + RawFSRInput[3] + RawFSRInput[4]) / 5;
+
+//  if (mode == 0){
+//	  calADCavg = calADCavg + RawFSRAvg;
+//  }
+
+  direction = controlScheme(RawFSRInput);
+  if (direction == 3){
+	  // if direction is forward, compute speed based on global forward motion measurements
+	  speed = conditional(frontTr, frontTmax, RawFSRAvg, pressurefront);
+  }
+  if (direction == 0){
+	  // if direction is reverse, compute speed based on global reverse motion measurements
+	  speed = conditional(reverseTr, reverseTmax, RawFSRAvg, pressurereverse);
+  }
+  if (direction == 2){
+	  // if direction is left, compute speed based on global left motion measurements
+	  speed = conditional(leftTr, leftTmax, RawFSRAvg, pressureleft);
+  }
+  if (direction == 1){
+	  // if direction is right, compute speed based on global right motion measurements
+	  speed = conditional(rightTr, rightTmax, RawFSRAvg, pressureright);
+  }
+
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_TXE);
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
   __HAL_UART_DISABLE_IT(&huart1, UART_IT_TXE);
-  /* USER CODE END TIM2_IRQn 1 */
+  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /**
@@ -162,13 +219,15 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  Message_handler();
+  transmission_handler(huart1, direction, speed, mode);
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
+
   /* USER CODE END USART1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
+
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

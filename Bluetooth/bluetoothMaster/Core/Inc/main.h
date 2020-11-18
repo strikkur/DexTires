@@ -32,8 +32,6 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
-//#include <stm32f0xx_hal_tim.h>
 
 /* USER CODE END Includes */
 
@@ -71,6 +69,24 @@ void Error_Handler(void);
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
+extern uint32_t RawFSRInput[5];
+extern uint32_t RawFSRAvg;
+
+/* Speed constants */
+extern uint32_t frontTr, frontTmax, frontTavg, reverseTr, reverseTmax, reverseTavg, leftTr, leftTmax, leftTavg, rightTr, rightTmax, rightTavg;
+extern int leftk, rightk, frontk, reversek;
+
+/* Pressure arrays to split the acceleration ranges into 29-buckets appropriately for each hand motion. */
+extern int pressurefront[29], pressurereverse[29], pressureleft[29], pressureright[29];
+
+/* Default mode for gameplay --> mode = 1 is gameplay; mode = 0 is calibration. */
+extern int mode;
+
+/* Buffer holding user's current direction corresponding to hand motion. */
+extern uint8_t direction;
+
+/* Buffer holding 5-bit speed translated from user's current pressure input. */
+extern uint8_t speed;
 
 /* USER CODE END Private defines */
 

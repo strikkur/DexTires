@@ -30,24 +30,24 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-bluetoothMaster.elf \
+bluetoothMaster2.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-bluetoothMaster.list \
+bluetoothMaster2.list \
 
 OBJCOPY_BIN += \
-bluetoothMaster.bin \
+bluetoothMaster2.bin \
 
 
 # All Target
-all: bluetoothMaster.elf secondary-outputs
+all: bluetoothMaster2.elf secondary-outputs
 
 # Tool invocations
-bluetoothMaster.elf: $(OBJS) $(USER_OBJS) C:\Users\the4c\Documents\School\ Work\2020-2021\Semester\ 7\ECE477\FSRs_SMAT\bluetoothMaster\STM32F051R8TX_FLASH.ld
-	arm-none-eabi-gcc -o "bluetoothMaster.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\the4c\Documents\School Work\2020-2021\Semester 7\ECE477\FSRs_SMAT\bluetoothMaster\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bluetoothMaster.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+bluetoothMaster2.elf: $(OBJS) $(USER_OBJS) C:\Users\the4c\Documents\School\ Work\2020-2021\Semester\ 7\ECE477\FSRs_SMAT\bluetoothMaster2\STM32F051R8TX_FLASH.ld
+	arm-none-eabi-gcc -o "bluetoothMaster2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\the4c\Documents\School Work\2020-2021\Semester 7\ECE477\FSRs_SMAT\bluetoothMaster2\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bluetoothMaster2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -56,13 +56,13 @@ default.size.stdout: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-bluetoothMaster.list: $(EXECUTABLES)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "bluetoothMaster.list"
+bluetoothMaster2.list: $(EXECUTABLES)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "bluetoothMaster2.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-bluetoothMaster.bin: $(EXECUTABLES)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "bluetoothMaster.bin"
+bluetoothMaster2.bin: $(EXECUTABLES)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "bluetoothMaster2.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
