@@ -87,7 +87,7 @@ void Error_Handler(void);
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
-
+extern uint8_t rxbuffer;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

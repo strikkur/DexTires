@@ -18,7 +18,9 @@ C_SRCS += \
 ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.c \
 ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.c \
 ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.c \
-../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c 
+../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c \
+../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c \
+../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c 
 
 OBJS += \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.o \
@@ -35,7 +37,9 @@ OBJS += \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.o \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.o \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.o \
-./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o 
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o \
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.o \
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.o 
 
 C_DEPS += \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.d \
@@ -52,7 +56,9 @@ C_DEPS += \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.d \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.d \
 ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.d \
-./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.d 
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.d \
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.d \
+./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -86,4 +92,8 @@ Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.o: ../Drivers/STM32F0xx_HAL_D
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m0 -std=gnu11 -g3 '-DHSE_VALUE=8000000' -DSTM32F051x8 '-DHSE_STARTUP_TIMEOUT=100' -DDEBUG '-DLSE_STARTUP_TIMEOUT=5000' '-DLSE_VALUE=32768' '-DDATA_CACHE_ENABLE=0' '-DINSTRUCTION_CACHE_ENABLE=0' -DUSE_HAL_DRIVER '-DVDD_VALUE=3300' '-DLSI_VALUE=40000' '-DHSI_VALUE=8000000' '-DPREFETCH_ENABLE=1' -c -I../Core/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F0xx/Include -I../Drivers/CMSIS/Include -I../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o: ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m0 -std=gnu11 -g3 '-DHSE_VALUE=8000000' -DSTM32F051x8 '-DHSE_STARTUP_TIMEOUT=100' -DDEBUG '-DLSE_STARTUP_TIMEOUT=5000' '-DLSE_VALUE=32768' '-DDATA_CACHE_ENABLE=0' '-DINSTRUCTION_CACHE_ENABLE=0' -DUSE_HAL_DRIVER '-DVDD_VALUE=3300' '-DLSI_VALUE=40000' '-DHSI_VALUE=8000000' '-DPREFETCH_ENABLE=1' -c -I../Core/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F0xx/Include -I../Drivers/CMSIS/Include -I../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
+Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.o: ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m0 -std=gnu11 -g3 '-DHSE_VALUE=8000000' -DSTM32F051x8 '-DHSE_STARTUP_TIMEOUT=100' -DDEBUG '-DLSE_STARTUP_TIMEOUT=5000' '-DLSE_VALUE=32768' '-DDATA_CACHE_ENABLE=0' '-DINSTRUCTION_CACHE_ENABLE=0' -DUSE_HAL_DRIVER '-DVDD_VALUE=3300' '-DLSI_VALUE=40000' '-DHSI_VALUE=8000000' '-DPREFETCH_ENABLE=1' -c -I../Core/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F0xx/Include -I../Drivers/CMSIS/Include -I../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
+Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.o: ../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m0 -std=gnu11 -g3 '-DHSE_VALUE=8000000' -DSTM32F051x8 '-DHSE_STARTUP_TIMEOUT=100' -DDEBUG '-DLSE_STARTUP_TIMEOUT=5000' '-DLSE_VALUE=32768' '-DDATA_CACHE_ENABLE=0' '-DINSTRUCTION_CACHE_ENABLE=0' -DUSE_HAL_DRIVER '-DVDD_VALUE=3300' '-DLSI_VALUE=40000' '-DHSI_VALUE=8000000' '-DPREFETCH_ENABLE=1' -c -I../Core/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F0xx/Include -I../Drivers/CMSIS/Include -I../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 
