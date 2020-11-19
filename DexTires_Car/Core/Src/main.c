@@ -39,7 +39,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim15;
 
 /* USER CODE BEGIN PV */
 unsigned ADC_val;
@@ -59,11 +61,13 @@ enum LightIndication {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_TIM15_Init(void);
 /* USER CODE BEGIN PFP */
-void SETSPEED(uint8_t);
-void SETDIRECTION(uint8_t);
 void SetCalibrationLights(uint8_t, uint8_t);
 void DecodeData(uint8_t);
+void speed_conversion(uint8_t, uint8_t);
+void angle_conversion(uint8_t, uint8_t);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,7 +106,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
+  //START TIMERS
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -114,17 +123,77 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  //Testing Calibration LEDs
+	  /*
 	  uint8_t message = 0;
 	  uint8_t temp = 0;
 	  for (int i = 0; i <= 3; i++) {
-		  temp = 0x1 << 7; //Calibration Mode
+	  	  temp = 0x1 << 7; //Calibration Mode
 		  temp |= (i << 5); //Direction
-		  for (int j = 1; j <=2; j++) {
+		  for (int j = 1; j <= 2; j++) {
 			  message = temp | j; //Pressure
 			  DecodeData(message);
 			  HAL_Delay(3000);
 		  }
+	  }*/
+
+	  //Test Motors
+	  uint8_t message = 0;
+	  //uint8_t temp = 0;
+
+	  message = 0;
+	  message = 0 << 5;
+	  message |= 31;
+	  DecodeData(message);
+	  HAL_Delay(4000);
+
+	  message = 0;
+	  message = 1 << 5;
+	  message |= 1;
+	  DecodeData(message);
+	  HAL_Delay(4000);
+
+	  message = 0;
+	  message = 2 << 5;
+	  message |= 1;
+	  DecodeData(message);
+	  HAL_Delay(4000);
+
+	  message = 0;
+	  message = 3 << 5;
+	  message |= 31;
+	  DecodeData(message);
+	  HAL_Delay(4000);
+
+	  message = 0;
+	  message = 1 << 5;
+	  message |= 1;
+	  DecodeData(message);
+	  HAL_Delay(4000);
+
+	  /*
+	  for (int i = 0; i <= 3; i++) {
+		  temp = 0x0 << 7; //Calibration Mode
+		  temp |= (i << 5); //Direction
+		  for (int j = 0; j <= 31; j++) {
+			  message = temp | j; //Speed
+			  DecodeData(message);
+			  HAL_Delay(3000);
+		  }
+	  }*/
+
+	  /*
+	  for (int i = 0 ; i < 32; i++) {
+		  speed_conversion(i, 0); //Forward
+		  angle_conversion(i, 1); //Right
+		  HAL_Delay(1000);
 	  }
+
+	  for (int i = 0 ; i < 32; i++) {
+		  speed_conversion(i, 3); //Backward
+		  angle_conversion(i, 2); //Left
+		  HAL_Delay(1000);
+	  }
+	  */
   }
   /* USER CODE END 3 */
 }
@@ -164,6 +233,65 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 95;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 9999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+  HAL_TIM_MspPostInit(&htim2);
+
 }
 
 /**
@@ -238,6 +366,71 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM15 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM15_Init(void)
+{
+
+  /* USER CODE BEGIN TIM15_Init 0 */
+
+  /* USER CODE END TIM15_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM15_Init 1 */
+
+  /* USER CODE END TIM15_Init 1 */
+  htim15.Instance = TIM15;
+  htim15.Init.Prescaler = 95;
+  htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim15.Init.Period = 9999;
+  htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim15.Init.RepetitionCounter = 0;
+  htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim15, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim15, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM15_Init 2 */
+
+  /* USER CODE END TIM15_Init 2 */
+  HAL_TIM_MspPostInit(&htim15);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -252,6 +445,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, INA_Pin|INB_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LD4_Pin|LD3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
@@ -259,6 +455,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : INA_Pin INB_Pin */
+  GPIO_InitStruct.Pin = INA_Pin|INB_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LD4_Pin LD3_Pin */
   GPIO_InitStruct.Pin = LD4_Pin|LD3_Pin;
@@ -279,14 +482,14 @@ void DecodeData(uint8_t message) {
 	//Check for Calibration Mode
 	if (mode == 1) {
 		enableLEDs = 1;
-		SETSPEED(0);
-		SETDIRECTION(0);
-	}
-	else {
+		speed_conversion(0, direction); //Don't run the DC Motors
+		angle_conversion(0, 0); //Don't turn the Servo Motor
+	} else {
 		enableLEDs = 0;
-		SETSPEED(speed);
-		SETDIRECTION(direction);
+		speed_conversion(speed, direction);
+		angle_conversion(speed, direction);
 	}
+
 	SetCalibrationLights(direction, speed);
 }
 
@@ -301,16 +504,13 @@ void DecodeData(uint8_t message) {
 
 // TODO: While car is not connected, blink all car lights every second to indicate disconnection
 
-void SETSPEED(uint8_t speed) {}
-void SETDIRECTION(uint8_t direction) {}
 void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 	// TODO: Have the LED lights blink rather than just be solid colors?
 	//			- Enable a timer while toggles the LEDs ever half a second
 	//			- Disable the timer when 'enabledLEDs' is off
 
 	if (enableLEDs) {
-    //If LEDs are already running, return
-    if (LEDsRunning) return;
+		//If LEDs are already running, return
 
 		int indication = 0;
 		int pulseWidth = 0;
@@ -333,11 +533,11 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 		if (pressure == 1) {
 			//Rest Pressure
 			__HAL_TIM_SET_AUTORELOAD(&htim3, 2399); //2Hz
-		}
-		else if (pressure == 2) {
+		} else if (pressure == 2) {
 			//Full Pressure
 			__HAL_TIM_SET_AUTORELOAD(&htim3, 1199); //4Hz
 		}
+
 		//Get half of the ARR to set the duty cycle to 50%
 		pulseWidth = ((__HAL_TIM_GET_AUTORELOAD(&htim3) + 1) / 2) - 1;
 
@@ -346,16 +546,64 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, ((indication & Back) || (indication & Left)) * pulseWidth);
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, ((indication & Back) || (indication & Right)) * pulseWidth);
 
-    LEDsRunning = 1;
-	}
-	else {
+		LEDsRunning = 1;
+	} else {
 		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
 		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
 		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
 		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
 
-    LEDsRunning = 0;
+		LEDsRunning = 0;
 	}
+}
+
+// Function to convert the 32 bit value into corresponding angle
+void angle_conversion(uint8_t input, uint8_t right_left) {
+	int pulse_width = 0;
+
+	if (right_left == 1) {
+		//Right
+		pulse_width = (int)(400 + (250 * input / 31));
+	} else if(right_left == 2) {
+		//Left
+		pulse_width = (int)(1100 - (250 * input / 31));
+	} else {
+		//No turning
+		pulse_width = 750;
+	}
+
+	htim15.Instance->CCR1 = pulse_width;
+}
+
+void speed_conversion(uint8_t input, uint8_t front_back)
+{
+	int duty_cycle_percentage = 0;
+	int min_percentage = 50;
+	int max_percentage = 80;
+
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, 1);
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, 1);
+
+	if(front_back == 3 || front_back == 1 || front_back == 2)//clockwise, forward/right/left
+	{
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 1); //INA
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0); //INB
+	}
+	else if(front_back == 0)//anticlockwise, back
+	{
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 0); //INA
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1); //INB
+	}
+
+	if(input == 0) {
+		duty_cycle_percentage = 0;
+	} else if (input == 1) {
+		duty_cycle_percentage = min_percentage;
+	} else {
+		duty_cycle_percentage = ((max_percentage - min_percentage)*(input - 1)/30) + min_percentage;
+	}
+
+	htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
 }
 
 /* USER CODE END 4 */

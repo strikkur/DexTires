@@ -62,6 +62,22 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
+#define PWM_Servo_Pin GPIO_PIN_2
+#define PWM_Servo_GPIO_Port GPIOA
+#define DC_PWM_Pin GPIO_PIN_3
+#define DC_PWM_GPIO_Port GPIOA
+#define INA_Pin GPIO_PIN_4
+#define INA_GPIO_Port GPIOA
+#define INB_Pin GPIO_PIN_5
+#define INB_GPIO_Port GPIOA
+#define FL_Pin GPIO_PIN_6
+#define FL_GPIO_Port GPIOA
+#define FR_Pin GPIO_PIN_7
+#define FR_GPIO_Port GPIOA
+#define BL_Pin GPIO_PIN_0
+#define BL_GPIO_Port GPIOB
+#define BR_Pin GPIO_PIN_1
+#define BR_GPIO_Port GPIOB
 #define LD4_Pin GPIO_PIN_8
 #define LD4_GPIO_Port GPIOC
 #define LD3_Pin GPIO_PIN_9
