@@ -14,7 +14,21 @@
 #include "main.h"
 #include "transmission.h"
 
+/* VARIABLES */
+typedef enum CalibrationState {
+	FORWARD_REST,
+	FORWARD_MAX,
+	REVERSE_REST,
+	REVERSE_MAX,
+	LEFT_REST,
+	LEFT_MAX,
+	RIGHT_REST,
+	RIGHT_MAX,
+} CalibrationState;
+
 /* FUNCTIONS */
-void statemachine(UART_HandleTypeDef);
+void statemachine(UART_HandleTypeDef, CalibrationState);
+
+
 
 #endif /* INC_CALIBRATION_H_ */

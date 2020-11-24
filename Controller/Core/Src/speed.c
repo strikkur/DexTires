@@ -65,7 +65,7 @@ int conditional(uint32_t Tr, uint32_t Tmax, uint32_t ADC_avg, int* pressurearray
 	else if ((ADC_avg > Tr) && (ADC_avg < Tavg)){
 		speed = MIN_SPEED;
 	}
-	else if ((ADC_avg > Tavg) && (ADC_avg < Tmax)){
+	else if ((ADC_avg >= Tavg) && (ADC_avg < Tmax)){
 			speed = speedcalc(Tavg, Tmax, pressurearray);
 	}
 	return speed;
