@@ -14,61 +14,66 @@
 /* VARIABLES */
 
 /* FUNCTIONS */
-/* void statemachine(UART_HandleTypeDef huart)
+/* void statemachine(UART_HandleTypeDef huart, uint8_t set_state)
  * implements the calibration state machine that indicates to car which threshold value we are
  * currently calculating, takes the average value of user input adc value for 3 secs and updates the
  * appropriate global threshold variable. speed = 1 for resting pressure, speed = 2 for max pressure.
  * */
-void statemachine(UART_HandleTypeDef huart){
-	mode = 0;
+void statemachine(UART_HandleTypeDef huart, CalibrationState set_state) {
 
-	//forward rest
-	transmission_handler(huart, mode, 3, 1);
-	HAL_Delay(3000);
-	frontTr = calADCavg / 300; //sum of ADC_avg values every 10ms for 3 secs / 300;
-	calADCavg = 0;
-
-	//forward max
-	transmission_handler(huart, mode, 3, 2);
-	HAL_Delay(3000);
-	frontTmax = calADCavg / 300;
-	calADCavg = 0;
-
-	//reverse rest
-	transmission_handler(huart, mode, 0, 1);
-	HAL_Delay(3000);
-	reverseTr = calADCavg / 300;
-	calADCavg = 0;
-
-	//reverse max
-	transmission_handler(huart, mode, 0, 2);
-	HAL_Delay(3000);
-	reverseTmax = calADCavg / 300;
-	calADCavg = 0;
-
-	//left rest
-	transmission_handler(huart, mode, 2, 1);
-	HAL_Delay(3000);
-	leftTr = calADCavg / 300;
-	calADCavg = 0;
-
-	//left max
-	transmission_handler(huart, mode, 2, 2);
-	HAL_Delay(3000);
-	leftTmax = calADCavg / 300;
-
-	//right rest
-	transmission_handler(huart, mode, 1, 1);
-	HAL_Delay(3000);
-	rightTr = calADCavg / 300;
-	calADCavg = 0;
-
-	//right max
-	transmission_handler(huart,mode, 1, 2);
-	HAL_Delay(3000);
-	rightTmax = calADCavg / 300;
-	calADCavg = 0;
-
-	mode = 1;
+	switch(set_state) {
+		case FORWARD_REST:
+			transmission_handler(huart, 3, 1, mode);
+			frontTr = calADCavg / 300; //sum of ADC_avg values every 10ms for 3 secs / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case FORWARD_MAX:
+			transmission_handler(huart, 3, 2, mode);
+			frontTmax = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case REVERSE_REST:
+			transmission_handler(huart, 0, 1, mode);
+			reverseTr = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case REVERSE_MAX:
+			transmission_handler(huart, 0, 2, mode);
+			reverseTmax = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case LEFT_REST:
+			transmission_handler(huart, 2, 1, mode);
+			leftTr = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case LEFT_MAX:
+			transmission_handler(huart, 2, 2, mode);
+			leftTmax = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case RIGHT_REST:
+			transmission_handler(huart, 1, 1, mode);
+			rightTr = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 0;
+			break;
+		case RIGHT_MAX:
+			transmission_handler(huart, 1, 2, mode);
+			rightTmax = calADCavg / 300;
+			calADCavg = 0;
+			last_state_completed = 1;
+			break;
+		default:
+			// we should never reach here...statemachine should always work properly!!
+			// the following transmission should never happen; we need to have a fail-safe/error handling for that
+			transmission_handler(huart, 0, 0, 0);
+	}
 	return;
 }

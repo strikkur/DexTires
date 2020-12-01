@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "calibration.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -58,8 +58,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_0
-#define B1_GPIO_Port GPIOA
 #define LD4_Pin GPIO_PIN_8
 #define LD4_GPIO_Port GPIOC
 #define LD3_Pin GPIO_PIN_9
@@ -90,6 +88,9 @@ extern uint8_t speed;
 
 /* Calibration Variables */
 extern uint32_t calADCavg;
+extern enum CalibrationState set_state;
+extern uint8_t last_state_completed;
+extern uint8_t cal_complete;
 
 /* USER CODE END Private defines */
 

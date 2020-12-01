@@ -23,6 +23,7 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "calibration.h"
 #include "transmission.h"
 #include "direction.h"
 #include "speed.h"
@@ -48,6 +49,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+//counter to indicate 3 secs for calibration mode
 
 /* USER CODE END PV */
 
@@ -65,6 +67,7 @@
 extern DMA_HandleTypeDef hdma_adc;
 extern ADC_HandleTypeDef hadc;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim15;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
 
@@ -149,6 +152,27 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 0 and 1 interrupts.
+  */
+void EXTI0_1_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_1_IRQn 0 */
+
+  // timer interrupt should be happening irrespective of this external interrupt; the ADC value should be updating still by the TIM3
+
+  // calibration mode button was pressed, so change the global mode, set_state , and cal_complete values
+  mode = 0;
+  set_state = FORWARD_REST;
+  cal_complete = 0;
+
+  /* USER CODE END EXTI0_1_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+  /* USER CODE BEGIN EXTI0_1_IRQn 1 */
+
+  /* USER CODE END EXTI0_1_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 channel 1 interrupt.
   */
 void DMA1_Channel1_IRQHandler(void)
@@ -191,8 +215,13 @@ void TIM3_IRQHandler(void)
 //	  // perform calibration polling every 10ms when in calibration mode and skip other speed/direction computations
 //	  // calibration computations taken care of in calibration.c
 //	  calADCavg = calADCavg + RawFSRAvg;
+//	  if (cal_complete) {
+//		  fourTavg();
+//		  fourk();
+//		  pressureArrayInit();
+//	  }
 //  }
-//  else {
+//  else if (mode && cal_complete) {
 	  fourTavg();
 	  fourk();
 	  pressureArrayInit();
@@ -215,6 +244,12 @@ void TIM3_IRQHandler(void)
 		  speed = conditional(rightTr, rightTmax, RawFSRAvg, pressureright);
 	  }
 //  }
+//  else {
+//	// fail-safe/error-handling
+//	// gameplay mode but calibration hasn't happened yet; i.e. when user turns on device for first time
+//	transmission_handler(huart1, 3, 0, mode);
+//
+//  }
 
   // Enable IT does nothing when in calibration mode
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_TXE);
@@ -223,6 +258,29 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 1 */
   __HAL_UART_DISABLE_IT(&huart1, UART_IT_TXE);
   /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM15 global interrupt.
+  */
+void TIM15_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM15_IRQn 0 */
+  // this timer should only do stuff if calibration mode is entered
+  if (mode == 0) {
+	  statemachine(huart1, set_state);
+	  // set next state variable
+	  (CalibrationState)set_state++;
+	  if(last_state_completed) {
+		  cal_complete = 1;
+		  mode = 1;
+	  }
+  }
+  /* USER CODE END TIM15_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim15);
+  /* USER CODE BEGIN TIM15_IRQn 1 */
+
+  /* USER CODE END TIM15_IRQn 1 */
 }
 
 /**
