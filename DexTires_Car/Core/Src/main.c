@@ -49,6 +49,7 @@ UART_HandleTypeDef huart1;
 unsigned ADC_val;
 int enableLEDs;
 int LEDsRunning;
+int prevSpeed;
 
 enum LightIndication {
 	Off = 0x0,
@@ -100,6 +101,7 @@ int main(void)
   ADC_val = 0;
   LEDsRunning = 0;
   enableLEDs = 0;
+  prevSpeed = 0;
 
   /* USER CODE END Init */
 
@@ -112,20 +114,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
-  /* TIM3 controls LEDs during calibration */
   MX_TIM3_Init();
-
-  /* TIM2 controls DC motors */
   MX_TIM2_Init();
-
-  /* TIM15 controls servo */
   MX_TIM15_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   //START TIMERS
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
   HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
+
+  //Enable Timer Channels
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -158,8 +160,8 @@ int main(void)
 //	  uint8_t message = 0;
 //	  //uint8_t temp = 0;
 //
-//	  message = 0;
-//	  message = 0 << 5;
+//	  message = 1 << 7;
+//	  message |= 0 << 5;
 //	  message |= 31;
 //	  DecodeData(message);
 //	  HAL_Delay(4000);
@@ -200,12 +202,30 @@ int main(void)
 	  }*/
 
 	  /*
+	  uint8_t message = 0;
 	  for (int i = 0 ; i < 32; i++) {
-		  speed_conversion(i, 0); //Forward
-		  angle_conversion(i, 1); //Right
-		  HAL_Delay(1000);
-	  }
+		  //speed_conversion(i, 0); //Forward
+		  //angle_conversion(i, 1); //Right
+		  message = 1 << 7;
+		  message |= 0 << 5;
+		  message |= i;
+		  DecodeData(message);
+		  HAL_Delay(100);
+	  }*/
 
+	  /*
+	  uint8_t message = 0;
+	  //speed_conversion(i, 0); //Forward
+	  //angle_conversion(i, 1); //Right
+	  message = 1 << 7;
+	  message |= 0 << 5;
+	  message |= 0;
+	  DecodeData(message);
+	  message |= 31;
+	  DecodeData(message);
+	  */
+
+	  /*
 	  for (int i = 0 ; i < 32; i++) {
 		  speed_conversion(i, 3); //Backward
 		  angle_conversion(i, 2); //Left
@@ -364,7 +384,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 599;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -574,17 +594,11 @@ void DecodeData(uint8_t message) {
  * Depending on the mode and speed bits, change the intensity of the headlights corresponding to the
  * states in calibration state machine. */
 void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
-	if (enableLEDs) {
+	if (enableLEDs && (pressure == 1 || pressure == 2)) {
 		//If LEDs are already running, return
 
 		int indication = 0;
 		int pulseWidth = 0;
-
-		//Enable Timer Channels
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 
 		switch (direction) {
 			case 0: indication = Back; break;
@@ -594,8 +608,8 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 			default: indication = Off; break;
 		}
 
-		//Note: Prescaler value = 9999
-		// here, pressure is referring to the speed bits that are sent during calibration mode.
+		// Note: Prescaler value = 9999
+		// Here, pressure is referring to the speed bits that are sent during calibration mode.
 		if (pressure == 1) {
 			//Rest Pressure
 			__HAL_TIM_SET_AUTORELOAD(&htim3, 2399); //2Hz
@@ -604,7 +618,7 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 			__HAL_TIM_SET_AUTORELOAD(&htim3, 1199); //4Hz
 		}
 
-		//Get half of the ARR to set the duty cycle to 50%
+		// Get half of the ARR to set the duty cycle to 50%
 		pulseWidth = ((__HAL_TIM_GET_AUTORELOAD(&htim3) + 1) / 2) - 1;
 
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, ((indication & Front) || (indication & Left)) * pulseWidth);
@@ -612,12 +626,25 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, ((indication & Back) || (indication & Left)) * pulseWidth);
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, ((indication & Back) || (indication & Right)) * pulseWidth);
 
+//		if (direction == 3 && pressure == 1) {
+//			//Enable Timer Channels
+//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+//		}
+
 		LEDsRunning = 1;
 	} else {
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+		//HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+		//HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+		//HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+		//HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);
 
 		LEDsRunning = 0;
 	}
@@ -655,8 +682,8 @@ void speed_conversion(uint8_t input, uint8_t front_back)
 	 * motors actually run and when they do not. max_percentage is based on when
 	 * we thought the DC motors speed was too high, so we limited the max PWM output. */
 	// was at 50 and 80
-	int min_percentage = 40;
-	int max_percentage = 50;
+	int min_percentage = 60;
+	int max_percentage = 90;
 
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, 1);
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, 1);
@@ -676,17 +703,43 @@ void speed_conversion(uint8_t input, uint8_t front_back)
 	// if speed is 0, then no duty cycle
 	if(input == 0) {
 		duty_cycle_percentage = 0;
+		htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
 	}
 	// if speed is 1, then min duty cycle
 	else if (input == 1) {
 		duty_cycle_percentage = min_percentage;
+		htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
 	}
 	// if speed is in acceleration range, then compute correct duty cycle percentage
 	else {
-		duty_cycle_percentage = ((max_percentage - min_percentage)*(input - 1)/30) + min_percentage;
+		if (prevSpeed <= input) { //Acceleration
+			for (int i = prevSpeed; i <= input; i++) {
+				duty_cycle_percentage = ((max_percentage - min_percentage)*(i - 1)/30) + min_percentage;
+				htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
+				HAL_Delay(50);
+			}
+		}
+		else { //Deceleration
+			for (int i = prevSpeed; i >= input; i--) {
+				duty_cycle_percentage = ((max_percentage - min_percentage)*(i - 1)/30) + min_percentage;
+				htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
+				HAL_Delay(50);
+			}
+		}
 	}
 
-	htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
+	/*
+	if (prevSpeed == 0 && input != 0) {
+		for (int i = 0; i <= input; i++) {
+			htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
+			HAL_Delay(100);
+		}
+	}
+	*/
+
+	//htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
+
+	prevSpeed = input;
 }
 
 /* USER CODE END 4 */
