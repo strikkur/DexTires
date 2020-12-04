@@ -162,8 +162,20 @@ void EXTI0_1_IRQHandler(void)
 
   // calibration mode button was pressed, so change the global mode, set_state , and cal_complete values
   mode = 0;
-  set_state = FORWARD_REST;
+  modeflag = 0;
+  set_state = BEGIN;
   cal_complete = 0;
+  last_state_completed = 0;
+
+  //indication of first state
+  //transmission_handler(huart1, 3, 1, mode);
+  //HAL_Delay(3000);
+
+  //Start timer 15
+  //HAL_TIM_Base_Stop_IT(&htim15);
+  //HAL_TIM_Base_Start_IT(&htim15);
+  //statemachine(huart1, set_state, htim15);
+
 
   /* USER CODE END EXTI0_1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
@@ -211,20 +223,19 @@ void TIM3_IRQHandler(void)
   RawFSRAvg = (RawFSRInput[0] + RawFSRInput[1] + RawFSRInput[2] + RawFSRInput[3] + RawFSRInput[4]) / 5;
 
 /* Calibration code will be added back in later; need to add external interrupt for button */
-//  if (mode == 0){
-//	  // perform calibration polling every 10ms when in calibration mode and skip other speed/direction computations
-//	  // calibration computations taken care of in calibration.c
-//	  calADCavg = calADCavg + RawFSRAvg;
-//	  if (cal_complete) {
+  if (mode == 0){
+	  // perform calibration polling every 10ms when in calibration mode and skip other speed/direction computations
+	  // calibration computations taken care of in calibration.c
+	  calADCavg = calADCavg + RawFSRAvg;
+	  tempcounter = tempcounter + 1;
+
+//	  if (last_state_completed) {
 //		  fourTavg();
 //		  fourk();
 //		  pressureArrayInit();
 //	  }
-//  }
-//  else if (mode && cal_complete) {
-	  fourTavg();
-	  fourk();
-	  pressureArrayInit();
+  }
+  else if (mode && cal_complete) {
 
 	  direction = controlScheme(RawFSRInput);
 	  if (direction == 3){
@@ -243,13 +254,13 @@ void TIM3_IRQHandler(void)
 		  // if direction is right, compute speed based on global right motion measurements
 		  speed = conditional(rightTr, rightTmax, RawFSRAvg, pressureright);
 	  }
-//  }
-//  else {
-//	// fail-safe/error-handling
-//	// gameplay mode but calibration hasn't happened yet; i.e. when user turns on device for first time
-//	transmission_handler(huart1, 3, 0, mode);
-//
-//  }
+  }
+  else {
+	// fail-safe/error-handling
+	// gameplay mode but calibration hasn't happened yet; i.e. when user turns on device for first time
+	transmission_handler(huart1, 3, 0, mode);
+
+  }
 
   // Enable IT does nothing when in calibration mode
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_TXE);
@@ -268,12 +279,18 @@ void TIM15_IRQHandler(void)
   /* USER CODE BEGIN TIM15_IRQn 0 */
   // this timer should only do stuff if calibration mode is entered
   if (mode == 0) {
-	  statemachine(huart1, set_state);
+	  //(CalibrationState)set_state++;
+	  statemachine(huart1, set_state, htim15);
 	  // set next state variable
 	  (CalibrationState)set_state++;
 	  if(last_state_completed) {
+		  HAL_TIM_Base_Stop(&htim15);
 		  cal_complete = 1;
 		  mode = 1;
+		  modeflag = 0;
+		  fourTavg();
+		  fourk();
+		  pressureArrayInit();
 	  }
   }
   /* USER CODE END TIM15_IRQn 0 */
@@ -291,9 +308,12 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
 
 	// only call interrupt-driven transmission handler if in gameplay mode
-	if(mode == 1) {
+	if(mode && cal_complete) {
 		transmission_handler(huart1, direction, speed, mode);
 	}
+//	if(mode) {
+//		transmission_handler(huart1, direction, speed, mode);
+//	}0
 
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);

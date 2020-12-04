@@ -69,8 +69,8 @@ int leftk, rightk, frontk, reversek;
 int pressurefront[29], pressurereverse[29], pressureleft[29], pressureright[29];
 
 /* Default mode for gameplay --> mode = 1 is gameplay; mode = 0 is calibration. */
-int mode = 1;
-
+volatile int mode;
+volatile int modeflag;
 /* Buffer holding user's current direction corresponding to hand motion. */
 uint8_t direction;
 
@@ -80,8 +80,9 @@ uint8_t speed;
 /* Calibration Variables */
 uint32_t calADCavg;
 CalibrationState set_state = 0;
-uint8_t last_state_completed = 0;
-uint8_t cal_complete = 0;
+volatile uint8_t last_state_completed = 0;
+volatile uint8_t cal_complete = 0;
+int tempcounter = 0;
 
 /* USER CODE END PV */
 
@@ -109,15 +110,15 @@ static void MX_TIM15_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-// Setting frontTr and frontTmax for testing
-frontTr = 10;
-frontTmax = 300;
-reverseTr = 10;
-reverseTmax = 300;
-leftTr = 10;
-leftTmax = 300;
-rightTr = 10;
-rightTmax = 300;
+//// Setting frontTr and frontTmax for testing
+//frontTr = 10;
+//frontTmax = 300;
+//reverseTr = 10;
+//reverseTmax = 300;
+//leftTr = 10;
+//leftTmax = 300;
+//rightTr = 10;
+//rightTmax = 300;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -146,6 +147,8 @@ rightTmax = 300;
   /* USER CODE BEGIN 2 */
 
   // Begin TIM3 to enable continuous Bluetooth transmission every 10ms
+  mode = 1;
+  modeflag = 0;
   HAL_TIM_Base_Start_IT(&htim3);
 
   /* USER CODE END 2 */
@@ -157,6 +160,10 @@ rightTmax = 300;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  if (mode == 0 && modeflag == 0){
+		  HAL_TIM_Base_Start_IT(&htim15);
+		  modeflag = 1;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -351,9 +358,9 @@ static void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 1 */
   htim15.Instance = TIM15;
-  htim15.Init.Prescaler = 48000;
+  htim15.Init.Prescaler = 47999;
   htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim15.Init.Period = 65535;
+  htim15.Init.Period = 2999;
   htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim15.Init.RepetitionCounter = 0;
   htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -440,6 +447,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -447,7 +455,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 

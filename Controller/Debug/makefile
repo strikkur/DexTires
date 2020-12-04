@@ -54,8 +54,8 @@ all: main-build
 main-build: bluetoothMaster2.elf secondary-outputs
 
 # Tool invocations
-bluetoothMaster2.elf: $(OBJS) $(USER_OBJS) C:\Users\the4c\Documents\School\ Work\2020-2021\Semester\ 7\ECE477\FSRs_SMAT\bluetoothMaster2\STM32F051R8TX_FLASH.ld
-	arm-none-eabi-gcc -o "bluetoothMaster2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\the4c\Documents\School Work\2020-2021\Semester 7\ECE477\FSRs_SMAT\bluetoothMaster2\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bluetoothMaster2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+bluetoothMaster2.elf: $(OBJS) $(USER_OBJS) C:\Users\sumat\STM32CubeIDE\workspace_1.4.0\Latestcontroller\Controller\STM32F051R8TX_FLASH.ld
+	arm-none-eabi-gcc -o "bluetoothMaster2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\sumat\STM32CubeIDE\workspace_1.4.0\Latestcontroller\Controller\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bluetoothMaster2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

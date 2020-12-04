@@ -1,0 +1,4 @@
+flashStorage.c:12:6:flash_initialize	8	static
+flashStorage.c:17:6:flash_deinitialize	8	static
+flashStorage.c:22:6:flash_erase	16	static
+flashStorage.c:38:6:Write_Flash	24	static

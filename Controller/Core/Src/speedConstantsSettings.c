@@ -39,7 +39,7 @@ void fourk(){
 	frontk = kcalc(frontTavg, frontTmax);
 	reversek = kcalc(reverseTavg, reverseTmax);
 	leftk = kcalc(leftTavg, leftTmax);
-	rightk = kcalc(rightTavg, rightTavg);
+	rightk = kcalc(rightTavg, rightTmax);
 }
 
 /* void pressureArrayInit()
@@ -49,15 +49,15 @@ void fourk(){
 void pressureArrayInit() {
 	int i;
 	for (i = 0; i < 29; i++){
-		pressurefront[i] = frontTavg + ((i + 1) * frontk);
+		pressurefront[i] = frontTavg + ((i) * frontk);
 	}
 	for (i = 0; i < 29; i++){
-			pressurereverse[i] = reverseTavg + ((i + 1) * reversek);
+			pressurereverse[i] = reverseTavg + ((i) * reversek);
 		}
 	for (i = 0; i < 29; i++){
-			pressureleft[i] = leftTavg + ((i + 1) * leftk);
+			pressureleft[i] = leftTavg + ((i) * leftk);
 		}
 	for (i = 0; i < 29; i++){
-			pressureright[i] = rightTavg + ((i + 1) * rightk);
+			pressureright[i] = rightTavg + ((i) * rightk);
 		}
 }

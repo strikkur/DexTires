@@ -78,7 +78,8 @@ extern int leftk, rightk, frontk, reversek;
 extern int pressurefront[29], pressurereverse[29], pressureleft[29], pressureright[29];
 
 /* Default mode for gameplay --> mode = 1 is gameplay; mode = 0 is calibration. */
-extern int mode;
+extern volatile int mode;
+extern volatile int modeflag;
 
 /* Buffer holding user's current direction corresponding to hand motion. */
 extern uint8_t direction;
@@ -89,9 +90,9 @@ extern uint8_t speed;
 /* Calibration Variables */
 extern uint32_t calADCavg;
 extern enum CalibrationState set_state;
-extern uint8_t last_state_completed;
-extern uint8_t cal_complete;
-
+extern volatile uint8_t last_state_completed;
+extern volatile uint8_t cal_complete;
+extern int tempcounter;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

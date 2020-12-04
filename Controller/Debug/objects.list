@@ -1,5 +1,6 @@
 "Core/Src/calibration.o"
 "Core/Src/direction.o"
+"Core/Src/flashStorage.o"
 "Core/Src/main.o"
 "Core/Src/speed.o"
 "Core/Src/speedConstantsSettings.o"

@@ -16,18 +16,27 @@
 
 /* VARIABLES */
 typedef enum CalibrationState {
+	BEGIN,
 	FORWARD_REST,
+	WAIT1,
 	FORWARD_MAX,
+	WAIT2,
 	REVERSE_REST,
+	WAIT3,
 	REVERSE_MAX,
+	WAIT4,
 	LEFT_REST,
+	WAIT5,
 	LEFT_MAX,
+	WAIT6,
 	RIGHT_REST,
+	WAIT7,
 	RIGHT_MAX,
+	END,
 } CalibrationState;
 
 /* FUNCTIONS */
-void statemachine(UART_HandleTypeDef, CalibrationState);
+void statemachine(UART_HandleTypeDef, CalibrationState, TIM_HandleTypeDef htim15);
 
 
 

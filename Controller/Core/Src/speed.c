@@ -56,6 +56,10 @@ int conditional(uint32_t Tr, uint32_t Tmax, uint32_t ADC_avg, int* pressurearray
 	int speed = 0;
 	uint32_t Tavg = (Tr + Tmax) / 2;
 
+	if (Tmax == 0 && Tr == 0){
+		return 0;
+	}
+
 	if (ADC_avg < Tr){
 		speed = 0;
 	}

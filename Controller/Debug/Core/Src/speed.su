@@ -1,2 +1,2 @@
 speed.c:53:5:conditional	32	static
-speed.c:80:5:speedcalc	32	static
+speed.c:84:5:speedcalc	32	static
