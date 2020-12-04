@@ -50,6 +50,8 @@ unsigned ADC_val;
 int enableLEDs;
 int LEDsRunning;
 int prevSpeed;
+int prevForwardBackward;
+int ledPulseWidth;
 
 enum LightIndication {
 	Off = 0x0,
@@ -102,6 +104,8 @@ int main(void)
   LEDsRunning = 0;
   enableLEDs = 0;
   prevSpeed = 0;
+  prevForwardBackward = 3;
+  ledPulseWidth = 0;
 
   /* USER CODE END Init */
 
@@ -219,6 +223,12 @@ int main(void)
 	  //angle_conversion(i, 1); //Right
 	  message = 1 << 7;
 	  message |= 0 << 5;
+	  message |= 0;
+	  DecodeData(message);
+	  message |= 31;
+	  DecodeData(message);
+	  message = 1 << 7;
+	  message |= 3 << 5;
 	  message |= 0;
 	  DecodeData(message);
 	  message |= 31;
@@ -359,9 +369,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 9999;
+  htim3.Init.Prescaler = 999;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 1199;
+  htim3.Init.Period = 49;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -598,7 +608,7 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 		//If LEDs are already running, return
 
 		int indication = 0;
-		int pulseWidth = 0;
+		//int pulseWidth = 0;
 
 		switch (direction) {
 			case 0: indication = Back; break;
@@ -608,6 +618,7 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 			default: indication = Off; break;
 		}
 
+		/*
 		// Note: Prescaler value = 9999
 		// Here, pressure is referring to the speed bits that are sent during calibration mode.
 		if (pressure == 1) {
@@ -620,11 +631,20 @@ void SetCalibrationLights(uint8_t direction, uint8_t pressure) {
 
 		// Get half of the ARR to set the duty cycle to 50%
 		pulseWidth = ((__HAL_TIM_GET_AUTORELOAD(&htim3) + 1) / 2) - 1;
+		*/
 
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, ((indication & Front) || (indication & Left)) * pulseWidth);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, ((indication & Front) || (indication & Right)) * pulseWidth);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, ((indication & Back) || (indication & Left)) * pulseWidth);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, ((indication & Back) || (indication & Right)) * pulseWidth);
+		if (pressure == 1) {
+			//Rest Pressure
+			ledPulseWidth = ((__HAL_TIM_GET_AUTORELOAD(&htim3) + 1) * 0.35) - 1; //35% Duty Cycle
+		} else if (pressure == 2) {
+			//Rest Pressure
+			ledPulseWidth = __HAL_TIM_GET_AUTORELOAD(&htim3); //100% Duty Cycle
+		}
+
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, ((indication & Front) || (indication & Left)) * ledPulseWidth);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, ((indication & Front) || (indication & Right)) * ledPulseWidth);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, ((indication & Back) || (indication & Left)) * ledPulseWidth);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, ((indication & Back) || (indication & Right)) * ledPulseWidth);
 
 //		if (direction == 3 && pressure == 1) {
 //			//Enable Timer Channels
@@ -659,10 +679,12 @@ void angle_conversion(uint8_t input, uint8_t right_left) {
 
 	if (right_left == 1) {
 		//Right
-		pulse_width = (int)(400 + (250 * input / 31));
+		//pulse_width = (int)(400 + (250 * input / 31));
+		pulse_width = 680;
 	} else if(right_left == 2) {
 		//Left
-		pulse_width = (int)(1100 - (250 * input / 31));
+		//pulse_width = (int)(1100 - (250 * input / 31));
+		pulse_width = 820;
 	} else {
 		//No turning
 		pulse_width = 750;
@@ -674,30 +696,35 @@ void angle_conversion(uint8_t input, uint8_t right_left) {
 /* void speed_conversion(uint8_t input, uint8_t front_back)
  * Function to convert the speed bits (uint8_t input) into correct PWM output for
  * DC motors. */
+
+//TODO: Make the speed conversion ramp-up/ramp-down for changing direction
 void speed_conversion(uint8_t input, uint8_t front_back)
 {
 	int duty_cycle_percentage = 0;
+	int currForwardBackward;
 
 	/* The following min_percentage is based on tested values to see when the DC
 	 * motors actually run and when they do not. max_percentage is based on when
 	 * we thought the DC motors speed was too high, so we limited the max PWM output. */
 	// was at 50 and 80
-	int min_percentage = 60;
-	int max_percentage = 90;
+	int min_percentage = 75;
+	int max_percentage = 85;
 
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, 1);
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, 1);
 
 	// This selection construct takes care of the polarity input to the motor driver.
-	if(front_back == 3 || front_back == 1 || front_back == 2)//clockwise, forward/right/left
+	if((front_back == 3 || front_back == 1 || front_back == 2)) //clockwise, forward/right/left
 	{
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 1); //INA
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0); //INB
+		currForwardBackward = 1;
 	}
 	else if(front_back == 0)//anticlockwise, back
 	{
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 0); //INA
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1); //INB
+		currForwardBackward = 0;
 	}
 
 	// if speed is 0, then no duty cycle
@@ -716,30 +743,22 @@ void speed_conversion(uint8_t input, uint8_t front_back)
 			for (int i = prevSpeed; i <= input; i++) {
 				duty_cycle_percentage = ((max_percentage - min_percentage)*(i - 1)/30) + min_percentage;
 				htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
-				HAL_Delay(50);
+				HAL_Delay(25);
 			}
 		}
 		else { //Deceleration
 			for (int i = prevSpeed; i >= input; i--) {
 				duty_cycle_percentage = ((max_percentage - min_percentage)*(i - 1)/30) + min_percentage;
 				htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
-				HAL_Delay(50);
+				HAL_Delay(25);
 			}
 		}
 	}
 
-	/*
-	if (prevSpeed == 0 && input != 0) {
-		for (int i = 0; i <= input; i++) {
-			htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
-			HAL_Delay(100);
-		}
-	}
-	*/
-
 	//htim2.Instance->CCR4 = duty_cycle_percentage * (htim2.Instance->ARR+1) / 100;
 
 	prevSpeed = input;
+	prevForwardBackward = currForwardBackward;
 }
 
 /* USER CODE END 4 */
